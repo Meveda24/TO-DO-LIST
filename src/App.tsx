@@ -52,12 +52,17 @@ function App() {
 
       <div style={{ display: "flex", gap: "10px" }}>
         <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Add a task..."
-          style={{ flex: 1, padding: "8px" }}
-        />
+  type="text"
+  value={input}
+  onChange={(e) => setInput(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === "Enter") {
+      addTodo();
+    }
+  }}
+  placeholder="Add a task..."
+/>
+
         <button onClick={addTodo}>Add</button>
       </div>
 
