@@ -1,80 +1,90 @@
-import { useState, useEffect } from 'react';
-import { TodoInput } from './components/TodoInput/TodoInput';
-import { TodoList } from './components/TodoList/TodoList';
-import { FilterBar } from './components/FilterBar/FilterBar';
-import styles from './App.module.css';
+import { useState, useEffect } from "react";
 
-export interface Todo {
-  id: string;
+type Todo = {
+  id: number;
   text: string;
   completed: boolean;
-}
-
-export type FilterType = 'all' | 'active' | 'completed';
+};
 
 function App() {
   const [todos, setTodos] = useState<Todo[]>(() => {
-    const saved = localStorage.getItem('todos');
-    if (saved) {
-      return JSON.parse(saved);
-    }
-    return [];
+    const saved = localStorage.getItem("todos");
+    return saved ? JSON.parse(saved) : [];
   });
 
-  const [filter, setFilter] = useState<FilterType>('all');
+  const [input, setInput] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('todos', JSON.stringify(todos));
+    localStorage.setItem("todos", JSON.stringify(todos));
   }, [todos]);
 
-  const addTodo = (text: string) => {
+  const addTodo = () => {
+    if (!input.trim()) return;
+
     const newTodo: Todo = {
-      id: crypto.randomUUID(),
-      text,
-      completed: false
+      id: Date.now(),
+      text: input,
+      completed: false,
     };
-    setTodos([newTodo, ...todos]);
+
+    setTodos([...todos, newTodo]);
+    setInput("");
   };
 
-  const toggleTodo = (id: string) => {
-    setTodos(todos.map(todo =>
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
-    ));
+  const toggleTodo = (id: number) => {
+    setTodos(
+      todos.map((todo) =>
+        todo.id === id ? { ...todo, completed: !todo.completed } : todo
+      )
+    );
   };
 
-  const deleteTodo = (id: string) => {
-    setTodos(todos.filter(todo => todo.id !== id));
+  const deleteTodo = (id: number) => {
+    setTodos(todos.filter((todo) => todo.id !== id));
   };
 
-  const filteredTodos = todos.filter(todo => {
-    if (filter === 'active') return !todo.completed;
-    if (filter === 'completed') return todo.completed;
-    return true;
-  });
-
-  const activeCount = todos.filter(t => !t.completed).length;
+  const activeCount = todos.filter((t) => !t.completed).length;
 
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Task Master</h1>
-        <p className={styles.subtitle}>
-          {activeCount} items left to do
-        </p>
-      </header>
+    <div style={{ padding: "40px", maxWidth: "500px", margin: "auto" }}>
+      <h1>Task Master</h1>
+      <p>{activeCount} tasks left</p>
 
-      <TodoInput onAdd={addTodo} />
+      <div style={{ display: "flex", gap: "10px" }}>
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Add a task..."
+          style={{ flex: 1, padding: "8px" }}
+        />
+        <button onClick={addTodo}>Add</button>
+      </div>
 
-      <FilterBar
-        currentFilter={filter}
-        onFilterChange={setFilter}
-      />
-
-      <TodoList
-        todos={filteredTodos}
-        onToggle={toggleTodo}
-        onDelete={deleteTodo}
-      />
+      <ul style={{ listStyle: "none", padding: 0, marginTop: "20px" }}>
+        {todos.map((todo) => (
+          <li
+            key={todo.id}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "8px",
+              borderBottom: "1px solid #ccc",
+            }}
+          >
+            <span
+              onClick={() => toggleTodo(todo.id)}
+              style={{
+                cursor: "pointer",
+                textDecoration: todo.completed ? "line-through" : "none",
+              }}
+            >
+              {todo.text}
+            </span>
+            <button onClick={() => deleteTodo(todo.id)}>X</button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
